@@ -23,16 +23,13 @@ const Modal = ({ option, onClose }) => {
         window.removeEventListener('keydown', handleKeydown);
     }
 
-
     useEffect(() => {
         window.addEventListener('keydown', handleKeydown);
         
         return () => {
             deleteEsc();
         } 
-    },[]);
-
-  
+    });  
 
     return createPortal(
         <Overlay onClick={handleBackdrop} >
