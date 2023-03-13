@@ -19,9 +19,7 @@ const ImageGallery = ({ inputName }) => {
             return;
         }
         
-        setPage(1);
         setStatus('pending')
-        console.log('1 f-------------------------');
         fetchImages(inputName, page)
             .then(response => {
                 if (response.hits.length === 0) {
@@ -36,22 +34,7 @@ const ImageGallery = ({ inputName }) => {
                 setError(error);
                 setStatus('rejected');
             })
-    }, [inputName]);
-
-    useEffect(() => {
-        fetchImages(inputName, page)
-            .then(response => {
-                setHits([...hits, ...response.hits]);
-                setTotal(response.total);
-                setStatus('resolved');
-            })
-            .catch(error => {
-                setError(error);
-                setStatus('rejected');
-            })
-    }, [page]
-    )
-
+    }, [inputName, page]);
 
     const loadMorePhoto = () => {
         setPage(prevPage => prevPage + 1);     
