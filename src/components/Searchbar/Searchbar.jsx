@@ -1,53 +1,51 @@
 import PropTypes from 'prop-types';
-import { Component } from 'react';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { SearchbarHeader, SearchForm, SearchFormButton, SearchFormButtonLabel, SearchFormInput } from './Searchbar.styled';
 
-class Searchbar extends Component {
+const Searchbar = ({ onSubmit }) => {
 
-    static propTypes = {
-        onSubmit: PropTypes.func.isRequired,
+    const [inputName, setInputName] = useState('');
+
+    const hangleNameOnChange = event => {
+        setInputName(event.currentTarget.value.toLowerCase());
     }
 
-    state = {
-        inputName: '',
-    }
-
-    hangleNameOnChange = event => {
-        this.setState({ inputName: event.currentTarget.value.toLowerCase() });
-    }
-
-    handleSubmit = event => {
+    const handleSubmit = event => {
         event.preventDefault();
-        if (this.state.inputName.trim() === '') {
+
+        if (inputName.trim() === '') {
             toast.error('Type something in search input');
             return
         }
-        this.props.onSubmit(this.state.inputName);
-        this.setState({inputName: ''})
+
+        onSubmit(inputName);
+        setInputName('')
     }
 
-    render() {
-        return ( 
-            <SearchbarHeader>
-                    <SearchForm onSubmit={this.handleSubmit}>
-                        <SearchFormButton type="submit">
-                        <SearchFormButtonLabel>Search</SearchFormButtonLabel>
-                        </SearchFormButton>
+    return ( 
+        <SearchbarHeader>
+                <SearchForm onSubmit={handleSubmit}>
+                    <SearchFormButton type="submit">
+                    <SearchFormButtonLabel>Search</SearchFormButtonLabel>
+                    </SearchFormButton>
 
-                        <SearchFormInput
-                            type="text"
-                            name="input"
-                            value={this.state.inputName}
-                            onChange={this.hangleNameOnChange}
-                            autoComplete="off"
-                            autoFocus
-                            placeholder="Search images and photos"
-                        />
-                    </SearchForm>
-            </SearchbarHeader>    
-        )
-    }
+                    <SearchFormInput
+                        type="text"
+                        name="input"
+                        value={inputName}
+                        onChange={hangleNameOnChange}
+                        autoComplete="off"
+                        autoFocus
+                        placeholder="Search images and photos"
+                    />
+                </SearchForm>
+        </SearchbarHeader>    
+    )
 }
 
 export default Searchbar;
+
+Searchbar.propTypes = {
+    onSubmit: PropTypes.func.isRequired,
+}

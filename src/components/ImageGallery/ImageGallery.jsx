@@ -1,92 +1,90 @@
 import PropTypes from 'prop-types';
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import ImageGalleryItem from '../ImageGalleryItem/ImageGalleryItem';
 import { ImageGalleryList, Notification } from './ImageGallery.styled';
 import Button from '../Button/Button';
 import Loader from '../Loader/Loader';
 import fetchImages from '../../services/Api'
 
-class ImageGallery extends Component {
+const ImageGallery = ({ inputName }) => {
 
-    static propTypes = {
-        inputName: PropTypes.string.isRequired,
-        options: PropTypes.shape({
-            id: PropTypes.string.isRequired,
-        }),
-    }
+    const [hits, setHits] = useState(null);
+    const [error, setError] = useState(null);
+    const [total, setTotal] = useState(0);
+    const [page, setPage] = useState(1);
+    const [status, setStatus] = useState('idle');
 
-    state = {
-        hits: null,
-        error: null,
-        total: 0,
-        page: 1,
-        status: 'idle',
-    }
-
-
-    componentDidUpdate(prevProps, prevState) {
-        if (prevProps.inputName !== this.props.inputName) {
-
-            this.setState({ status: 'pending', page: 1 });
-            
-            fetchImages(this.props.inputName, this.state.page)
-                .then(response => {
-                    if (response.hits.length === 0) {
-                        this.setState({ status: 'rejected'});
-                        return
-                    }
-                    this.setState({
-                        hits: [...response.hits],
-                        total: response.total,
-                        status: 'resolved', 
-                    })
-                })
-                    
-                .catch(error => this.setState({ error, status: 'rejected' }))
+    useEffect(() => {
+        if (!inputName) {
+            return;
         }
+        
+        setPage(1);
+        setStatus('pending')
+        console.log('1 f-------------------------');
+        fetchImages(inputName, page)
+            .then(response => {
+                if (response.hits.length === 0) {
+                    setStatus('rejected');
+                    return
+                }
+                setHits([...response.hits]);
+                setTotal(response.total);
+                setStatus('resolved');
+            })
+            .catch(error => {
+                setError(error);
+                setStatus('rejected');
+            })
+    }, [inputName]);
+
+    useEffect(() => {
+        fetchImages(inputName, page)
+            .then(response => {
+                setHits([...hits, ...response.hits]);
+                setTotal(response.total);
+                setStatus('resolved');
+            })
+            .catch(error => {
+                setError(error);
+                setStatus('rejected');
+            })
+    }, [page]
+    )
+
+
+    const loadMorePhoto = () => {
+        setPage(prevPage => prevPage + 1);     
     }
 
-    loadMorePhoto = () => {
-        const newPage = this.state.page + 1;
-        this.setState(prevPage => ({
-            page: newPage,
-        }));
-        fetchImages(this.props.inputName, newPage)
-                .then(response => this.setState({
-                    hits: [...this.state.hits, ...response.hits],
-                    total: response.total,
-                    status: 'resolved', 
-                    }))
-                .catch(error => this.setState({ error, status: 'rejected' }))
-    }
-
-    render() {
-        if(this.state.status === 'idle') {
+        if(status === 'idle') {
             return <Notification>Please, type something to the search</Notification>
         } 
         
-        if(this.state.status === 'pending') {
+        if(status === 'pending') {
             return <Loader />
         }
 
-        if(this.state.status === 'rejected') {
-            return <Notification>Oopps...no images with this name</Notification>
+        if(status === 'rejected') {
+            return <Notification>Oopps...no images with this name.{!error && <div>{error}</div>}</Notification>
         }
 
-        if(this.state.status === 'resolved') {
+        if(status === 'resolved') {
              return (
                  <div>
                     <ImageGalleryList >
-                        {this.state.hits.map(option => (
+                        {hits.map(option => (
                             <ImageGalleryItem key={option.id} option={option} />
                         ))}
                     </ImageGalleryList>
-                     {this.state.total > this.state.hits.length  && <Button onClick={this.loadMorePhoto}/>}
+                     {total > hits.length  && <Button onClick={loadMorePhoto}/>}
                 </div>
             ) 
-        }
-    }
-    
+        }    
 }
 
 export default ImageGallery;
+
+ImageGallery.propTypes = {
+    inputName: PropTypes.string.isRequired,
+}

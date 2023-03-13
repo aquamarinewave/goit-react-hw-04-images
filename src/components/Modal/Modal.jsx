@@ -1,50 +1,54 @@
 import PropTypes from 'prop-types';
-import { Component } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Overlay, ModalWindow } from './Modal.styled';
 
 const ModalPortal = document.getElementById('modal-root')
 
-class Modal extends Component {
+const Modal = ({ option, onClose }) => {
 
-    static propTypes = {
-        option: PropTypes.shape({
-            tags: PropTypes.string.isRequired,
-            largeImageURL: PropTypes.string.isRequired,
-        }),
-        onClose: PropTypes.func.isRequired,
-    }
-    
-    componentDidMount() {
-        window.addEventListener('keydown', this.handleKeydown);
-    }
-
-    componentWillUnmount() {
-        window.removeEventListener('keydown', this.handleKeydown);
-    }
-
-    handleKeydown = e => {
+    const handleKeydown = e => {
         if (e.code === 'Escape') {
-            this.props.onClose();
+            onClose();
         }
     }
 
-    handleBackdrop = e => {
+    const handleBackdrop = e => {
         if (e.currentTarget !== e.target) {
-            this.props.onClose();
+            onClose();
         }
-
     }
 
-    render() {
-        return createPortal(
-            <Overlay onClick={this.handleBackdrop} >
-                <ModalWindow>
-                    <img src={this.props.option.largeImageURL} alt={this.props.option.tags} />
-                </ModalWindow>
-            </Overlay>, ModalPortal
-        );
+    const deleteEsc = () => {
+        window.removeEventListener('keydown', handleKeydown);
     }
+
+
+    useEffect(() => {
+        window.addEventListener('keydown', handleKeydown);
+        
+        return () => {
+            deleteEsc();
+        } 
+    },[]);
+
+  
+
+    return createPortal(
+        <Overlay onClick={handleBackdrop} >
+            <ModalWindow>
+                <img src={option.largeImageURL} alt={option.tags} />
+            </ModalWindow>
+        </Overlay>, ModalPortal
+    );
 }
 
 export default Modal;
+
+Modal.propTypes = {
+    option: PropTypes.shape({
+        tags: PropTypes.string.isRequired,
+        largeImageURL: PropTypes.string.isRequired,
+    }),
+    onClose: PropTypes.func.isRequired,
+}
