@@ -8,7 +8,7 @@ import fetchImages from '../../services/Api'
 
 const ImageGallery = ({ inputName }) => {
 
-    const [hits, setHits] = useState(null);
+    const [hits, setHits] = useState([]);
     const [error, setError] = useState(null);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
@@ -19,14 +19,14 @@ const ImageGallery = ({ inputName }) => {
             return;
         }
         
-        setStatus('pending')
+        setStatus('pending');
         fetchImages(inputName, page)
             .then(response => {
                 if (response.hits.length === 0) {
                     setStatus('rejected');
                     return
                 }
-                setHits([...response.hits]);
+                setHits(prevHits => [...prevHits, ...response.hits]);
                 setTotal(response.total);
                 setStatus('resolved');
             })
